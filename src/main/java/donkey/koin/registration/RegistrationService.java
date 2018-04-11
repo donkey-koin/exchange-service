@@ -28,9 +28,11 @@ public class RegistrationService {
             throw new ResourceException(BAD_REQUEST, String.format("User %s already exists", user.getUsername()));
         });
 
-        User user = new User();
-        user.setUsername(registrationDetails.getUsername());
-        user.setPassword(registrationDetails.getPassword());
+        User user = User.builder()
+                .username(registrationDetails.getUsername())
+                .password(registrationDetails.getPassword())
+                .build();
+
         userRepository.save(user);
         return new RegistrationResult(RegistrationResultType.SUCCESS);
     }
