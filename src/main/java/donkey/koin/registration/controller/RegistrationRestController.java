@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-import static donkey.koin.dictionaires.WebServicesDictionary.REGISTER;
+import static donkey.koin.dictionaires.WebServicesDictionary.USERS_REGISTER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -24,7 +24,7 @@ public class RegistrationRestController {
         this.registrationService = registrationService;
     }
 
-    @RequestMapping(value = REGISTER, method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = USERS_REGISTER, method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity registerUser(@RequestBody @Valid RegistrationDetails registrationDetails) {
         RegistrationResult registrationResult = registrationService.registerUser(registrationDetails);
         return ResponseEntity.ok(registrationResult);
