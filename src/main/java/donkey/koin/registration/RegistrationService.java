@@ -22,16 +22,16 @@ public class RegistrationService {
     }
 
     public RegistrationResult registerUser(RegistrationDetails registrationDetails) {
-        Optional<User> userByUsername = userRepository.findUserByUsername(registrationDetails.getUsername());
+        Optional<User> maybeUser = userRepository.findUserByUsername(registrationDetails.getUsername());
 
-        if (!userByUsername.isPresent()) {
-            User user = new User();
-            user.setUsername(registrationDetails.getUsername());
-            user.setPassword(registrationDetails.getPassword());
-            userRepository.save(user);
-            return new RegistrationResult(RegistrationResultType.SUCCESS);
-        } else {
-            throw new ResourceException(BAD_REQUEST, String.format("User %s already exists", userByUsername.get().getUsername()));
-        }
+        maybeUser.ifPresent(user -> {
+            throw new ResourceException(BAD_REQUEST, String.format("User %s already exists", user.getUsername()));
+        });
+
+        User user = new User();
+        user.setUsername(registrationDetails.getUsername());
+        user.setPassword(registrationDetails.getPassword());
+        userRepository.save(user);
+        return new RegistrationResult(RegistrationResultType.SUCCESS);
     }
 }

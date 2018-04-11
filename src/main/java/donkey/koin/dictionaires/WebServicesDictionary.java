@@ -1,5 +1,5 @@
 package donkey.koin.dictionaires;
 
-public class WebServiceDictionary {
+public class WebServicesDictionary {
     public static final String REGISTER = "/register";
 }

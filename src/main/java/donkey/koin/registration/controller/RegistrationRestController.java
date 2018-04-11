@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-import static donkey.koin.dictionaires.WebServiceDictionary.REGISTER;
+import static donkey.koin.dictionaires.WebServicesDictionary.REGISTER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
