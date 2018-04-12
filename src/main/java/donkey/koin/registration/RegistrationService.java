@@ -21,7 +21,7 @@ public class RegistrationService {
         this.userRepository = userRepository;
     }
 
-    public RegistrationResult registerUser(RegistrationDetails registrationDetails) {
+    public boolean registerUser(RegistrationDetails registrationDetails) {
         Optional<User> maybeUser = userRepository.findUserByUsername(registrationDetails.getUsername());
 
         maybeUser.ifPresent(user -> {
@@ -34,6 +34,6 @@ public class RegistrationService {
                 .build();
 
         userRepository.save(user);
-        return new RegistrationResult(RegistrationResultType.SUCCESS);
+        return true;
     }
 }

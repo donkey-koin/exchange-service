@@ -1,6 +1,5 @@
 package donkey.koin.registration.controller;
 
-import donkey.koin.registration.RegistrationResult;
 import donkey.koin.registration.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Collections;
 
 import static donkey.koin.dictionaries.WebServicesDictionary.USERS_REGISTER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -26,7 +26,7 @@ public class RegistrationRestController {
 
     @RequestMapping(value = USERS_REGISTER, method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity registerUser(@RequestBody @Valid RegistrationDetails registrationDetails) {
-        RegistrationResult registrationResult = registrationService.registerUser(registrationDetails);
-        return ResponseEntity.ok(registrationResult);
+        boolean registrationCompletion = registrationService.registerUser(registrationDetails);
+        return ResponseEntity.ok(Collections.singletonMap("registrationCompletion", registrationCompletion));
     }
 }
