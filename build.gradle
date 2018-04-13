@@ -32,7 +32,8 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-groovy-templates')
 	compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.springframework.boot:spring-boot-starter-actuator')
-	runtime('com.h2database:h2')
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.9'
+    runtime('com.h2database:h2')
 	runtime('org.postgresql:postgresql')
 	compileOnly('org.projectlombok:lombok')
     compile("org.springframework.boot:spring-boot-configuration-processor")
