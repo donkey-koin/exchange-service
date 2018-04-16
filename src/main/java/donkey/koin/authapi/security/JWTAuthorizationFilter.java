@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static donkey.koin.authapi.security.SecurityConstants.*;
 
@@ -39,25 +40,15 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
-//        return Optional.ofNullable(request.getHeader(HEADER_STRING))
-//                .map(token ->
-//                    Optional.ofNullable(generateJwt(token))
-//                            .map(user -> new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>()))
-//                            .orElse(null)
-//                )
-//                .orElse(null);
+        return Optional.ofNullable(request.getHeader(HEADER_STRING))
+                .map(this::getUsernamePasswordAuthenticationToken)
+                .orElse(null);
+    }
 
-//
-        String token = request.getHeader(HEADER_STRING);
-        if (token != null) {
-            String user = generateJwt(token);
-
-            if (user != null) {
-                return new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
-            }
-            return null;
-        }
-        return null;
+    private UsernamePasswordAuthenticationToken getUsernamePasswordAuthenticationToken(String token) {
+        return Optional.ofNullable(generateJwt(token))
+                .map(user -> new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>()))
+                .orElse(null);
     }
 
     private String generateJwt(String token) {

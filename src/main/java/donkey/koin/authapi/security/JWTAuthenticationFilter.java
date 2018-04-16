@@ -22,6 +22,7 @@ import static donkey.koin.authapi.security.SecurityConstants.*;
 
 @AllArgsConstructor
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
     private AuthenticationManager authenticationManager;
 
     @Override
