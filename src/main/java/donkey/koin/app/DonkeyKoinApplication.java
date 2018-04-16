@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @EntityScan(basePackages = {"donkey.koin.entities"})
 @EnableJpaRepositories(basePackages = {"donkey.koin.entities"})
-@ComponentScan(basePackages = {"donkey.koin.configuration"})
+@ComponentScan(basePackages = {"donkey.koin.configuration", "donkey.koin.authapi"})
 @Import({UserConfiguration.class, HandlerConfiguration.class})
 @SpringBootApplication
 public class DonkeyKoinApplication {
