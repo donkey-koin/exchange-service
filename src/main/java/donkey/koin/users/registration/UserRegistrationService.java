@@ -1,28 +1,27 @@
-package donkey.koin.users;
+package donkey.koin.users.registration;
 
 import donkey.koin.entities.user.User;
 import donkey.koin.entities.user.UserRepository;
 import donkey.koin.password.HashService;
-import donkey.koin.users.controller.UserRegistrationDetails;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import javax.annotation.Resource;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 
+@Slf4j
 @Service
+@AllArgsConstructor
 public class UserRegistrationService {
 
+    @Resource
     private final UserRepository userRepository;
+    @Resource
     private final HashService hashService;
-
-    @Autowired
-    public UserRegistrationService(UserRepository userRepository, HashService hashService) {
-        this.userRepository = userRepository;
-        this.hashService = hashService;
-    }
 
     public void registerUser(UserRegistrationDetails userRegistrationDetails) {
         Optional<User> maybeUser = userRepository.findUserByUsername(userRegistrationDetails.getUsername());
@@ -38,6 +37,7 @@ public class UserRegistrationService {
                 .password(hashedPassword)
                 .build();
 
+        log.info("Saving user '{}' to database", user.getUsername());
         userRepository.save(user);
     }
 }

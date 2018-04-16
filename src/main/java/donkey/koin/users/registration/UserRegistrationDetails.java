@@ -1,4 +1,4 @@
-package donkey.koin.users.controller;
+package donkey.koin.users.registration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
