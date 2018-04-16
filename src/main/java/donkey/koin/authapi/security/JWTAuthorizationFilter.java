@@ -39,13 +39,18 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
+//        return Optional.ofNullable(request.getHeader(HEADER_STRING))
+//                .map(token ->
+//                    Optional.ofNullable(generateJwt(token))
+//                            .map(user -> new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>()))
+//                            .orElse(null)
+//                )
+//                .orElse(null);
+
+//
         String token = request.getHeader(HEADER_STRING);
         if (token != null) {
-            String user = Jwts.parser()
-                    .setSigningKey(SECRET.getBytes())
-                    .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
-                    .getBody()
-                    .getSubject();
+            String user = generateJwt(token);
 
             if (user != null) {
                 return new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
@@ -53,5 +58,13 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
             return null;
         }
         return null;
+    }
+
+    private String generateJwt(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET.getBytes())
+                .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
+                .getBody()
+                .getSubject();
     }
 }
