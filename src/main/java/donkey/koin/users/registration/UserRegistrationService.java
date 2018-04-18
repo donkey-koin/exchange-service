@@ -35,6 +35,7 @@ public class UserRegistrationService {
         User user = User.builder()
                 .username(userRegistrationDetails.getUsername())
                 .password(hashedPassword)
+                .email(userRegistrationDetails.getEmail())
                 .build();
 
         log.info("Saving user '{}' to database", user.getUsername());
