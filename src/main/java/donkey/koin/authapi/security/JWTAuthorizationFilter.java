@@ -1,6 +1,5 @@
 package donkey.koin.authapi.security;
 
-import io.jsonwebtoken.Jwts;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,12 +13,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static donkey.koin.authapi.security.SecurityConstants.*;
+import static donkey.koin.authapi.security.SecurityConstants.HEADER_STRING;
+import static donkey.koin.authapi.security.SecurityConstants.TOKEN_PREFIX;
 
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
-    public JWTAuthorizationFilter(AuthenticationManager authManager) {
+    private JwtService jwtService;
+
+    public JWTAuthorizationFilter(AuthenticationManager authManager, JwtService jwtService) {
         super(authManager);
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -46,16 +49,8 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private UsernamePasswordAuthenticationToken getUsernamePasswordAuthenticationToken(String token) {
-        return Optional.ofNullable(generateJwt(token))
+        return Optional.ofNullable(jwtService.parseJwt(token))
                 .map(user -> new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>()))
                 .orElse(null);
-    }
-
-    private String generateJwt(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET.getBytes())
-                .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
-                .getBody()
-                .getSubject();
     }
 }

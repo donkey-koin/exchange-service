@@ -14,9 +14,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {"donkey.koin.configuration", "donkey.koin.authapi"})
 @Import({UserConfiguration.class, HandlerConfiguration.class})
 @SpringBootApplication
-public class DonkeyKoinApplication {
+public class ExchangeApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DonkeyKoinApplication.class, args);
+        SpringApplication.run(ExchangeApplication.class, args);
     }
 }

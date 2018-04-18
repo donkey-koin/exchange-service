@@ -1,6 +1,6 @@
 package donkey.koin.integration;
 
-import donkey.koin.app.DonkeyKoinApplication;
+import donkey.koin.app.ExchangeApplication;
 import donkey.koin.dictionaries.WebServicesDictionary;
 import donkey.koin.users.registration.UserRegistrationService;
 import io.jsonwebtoken.SignatureException;
@@ -27,14 +27,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         webEnvironment = WebEnvironment.RANDOM_PORT,
-        classes = DonkeyKoinApplication.class)
+        classes = ExchangeApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
 public class RegistrationLoginIntegrationTest {
 
-    public static final String REGISTRATION_CREDENTIALS = "classpath:integration/registration/registrationCredentials.json";
-    public static final String LOGIN_CREDENTIALS = "classpath:integration/login/loginCredentials.json";
-    public static final String FALSE_LOGIN_CREDENTIALS = "classpath:integration/login/falseLoginCredentials.json";
+    public static final String CLASSPATH = "classpath:";
+    public static final String REGISTRATION_CREDENTIALS = CLASSPATH + "integration/registration/registrationCredentials.json";
+    public static final String LOGIN_CREDENTIALS = CLASSPATH + "integration/login/loginCredentials.json";
+    public static final String FALSE_LOGIN_CREDENTIALS = CLASSPATH + "integration/login/falseLoginCredentials.json";
 
     @Autowired
     private MockMvc mvc;
