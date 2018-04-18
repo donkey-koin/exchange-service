@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Data
 @Entity
@@ -23,6 +24,9 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     @Column(name = "TRANSACTION_TYPE")
     private TransactionType transactionType;
+
+    @Column(name = "TRANSACTION_TIMESTAMP")
+    private Date transactionTimeStamp;
 
 
 }

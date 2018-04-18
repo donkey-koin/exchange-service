@@ -1,13 +1,17 @@
 -- CREATE SCHEMA exchange;
 
-create table users (
-  id       serial primary key not null,
-  username varchar(50)        not null,
-  password varchar(60)        not null,
-  email    varchar(50)        not null
+CREATE TABLE USERS (
+  ID       SERIAL primary key not null,
+  USERNAME VARCHAR(50)        not null,
+  PASSWORD VARCHAR(60)        not null,
+  EMAIL    VARCHAR(50)        not null
 );
 
-create table transactions (
-  id      SERIAL primary key not null,
-  user_id integer            not null REFERENCES users (id)
+CREATE UNIQUE INDEX USERS_USERNAME_IDX
+  ON USERS (USERNAME);
+
+CREATE TABLE TRANSACTIONS (
+  ID                    SERIAL primary key not null,
+  USER_ID               integer            not null REFERENCES USERS (ID),
+  TRANSACTION_TIMESTAMP date               not null
 )
