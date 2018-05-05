@@ -28,8 +28,8 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .antMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService()))
-                .addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtService()))
+                .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtServiceHMAC()))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtServiceHMAC()))
                 // this disables session creation on Spring Security
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
@@ -49,7 +49,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    JwtService jwtService() {
-        return new JwtServiceImpl();
+    JwtService jwtServiceHMAC() {
+        return new JwtServiceHMAC();
     }
 }

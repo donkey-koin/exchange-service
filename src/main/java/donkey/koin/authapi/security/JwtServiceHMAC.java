@@ -11,7 +11,7 @@ import java.util.Date;
 import static donkey.koin.authapi.security.SecurityConstants.*;
 
 @Service
-public class JwtServiceImpl implements JwtService {
+public class JwtServiceHMAC implements JwtService {
 
     @Override
     public String parseJwt(String token) {
