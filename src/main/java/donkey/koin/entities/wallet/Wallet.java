@@ -20,9 +20,7 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User userId;
+    private Long userId;
 
     @Column(name = "AMOUNT_EURO")
     private Double amountEuro;

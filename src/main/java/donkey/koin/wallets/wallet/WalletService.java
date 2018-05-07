@@ -11,7 +11,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Optional;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -25,12 +24,7 @@ public class WalletService {
     private UserRepository userRepository;
 
     public Wallet getCurrentWallet(String username) {
-        Optional<User> user = userRepository.findUserByUsername(username);
-        if (!user.isPresent()) {
-            throw new HttpClientErrorException(NOT_FOUND, String.format("User %s not found", username));
-        }
-
-        Optional<Wallet> wallet = walletRepository.findWalletByUserId(user.get());
+        Optional<Wallet> wallet = walletRepository.findWalletByUsername(username);
         if(!wallet.isPresent()) {
             throw new HttpClientErrorException(NOT_FOUND, String.format("Don't know how but wallet is not present for user %s", username));
         }

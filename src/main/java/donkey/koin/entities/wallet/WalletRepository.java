@@ -1,12 +1,14 @@
 package donkey.koin.entities.wallet;
 
 import donkey.koin.entities.user.User;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
 public interface WalletRepository extends CrudRepository<Wallet, Long> {
 
-    Optional<Wallet> findWalletByUserId(User user);
-
+    @Query("SELECT w FROM Wallet w JOIN User u ON u.id = w.userId WHERE u.username = :username")
+    Optional<Wallet> findWalletByUsername(@Param("username") String username);
 }

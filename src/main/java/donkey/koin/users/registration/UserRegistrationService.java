@@ -48,7 +48,7 @@ public class UserRegistrationService {
         User createdUser = userRepository.save(user);
 
         Wallet wallet = Wallet.builder()
-                .userId(createdUser)
+                .userId(createdUser.getId())
                 .amountBtc(0d)
                 .amountEuro(0d)
                 .build();
