@@ -1,6 +1,5 @@
 package donkey.koin.entities.wallet;
 
-import donkey.koin.entities.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

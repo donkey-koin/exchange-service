@@ -18,7 +18,7 @@ public class TransactionService {
     public void purchase(TransactionDetails transactionDetails) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
         if (currentWallet.getAmountEuro() <= transactionDetails.getMoneyAmount()) {
-//            walletService.purchaseBtc(transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
+            walletService.purchaseBtc(transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
         } else {
             log.info("Not enough euros for purchase of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
