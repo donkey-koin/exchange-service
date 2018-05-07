@@ -19,7 +19,7 @@ public class TransactionService {
 
     public void purchase(TransactionDetails transactionDetails) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
-        if (currentWallet.getAmountEuro() >= transactionDetails.getMoneyAmount()) {
+        if (currentWallet.getAmountEuro() >= transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue()) {
             calculateMoreBtcs(transactionDetails, currentWallet);
             calculateLessMoney(transactionDetails, currentWallet);
             walletService.updateBtc(currentWallet);
@@ -41,7 +41,7 @@ public class TransactionService {
             log.info("Sold {} donkey koins for user '{}' for prize of ",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
         } else {
-            log.info("Not enough euros for sale of '{}' donkey koins for user '{}'",
+            log.info("Not enough koins for sale of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
             throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough Donkey koins");
         }

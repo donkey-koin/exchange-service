@@ -10,10 +10,10 @@ public class TransactionDetails {
 
     private final String username;
     private final Instant transactionTime;
-    private final int moneyAmount;
+    private final Double moneyAmount;
     private final int lastKoinValue;
 
-    public TransactionDetails(@JsonProperty("moneyAmount") int moneyAmount,
+    public TransactionDetails(@JsonProperty("moneyAmount") Double moneyAmount,
                               @JsonProperty("username") String username,
                               @JsonProperty("lastKoinValue") int lastKoinValue,
                               @JsonProperty("transactionTime") Instant transactionTime) {
