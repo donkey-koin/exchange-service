@@ -32,8 +32,7 @@ public class WalletService {
         return wallet.get();
     }
 
-    public void purchaseBtc(int amount, String username) {
-        walletRepository.addAmountBtc(amount, username);
-        log.info("Added {} donkey koins for user '{}'", amount, username);
+    public void updateBtc(Wallet wallet) {
+        walletRepository.save(wallet);
     }
 }

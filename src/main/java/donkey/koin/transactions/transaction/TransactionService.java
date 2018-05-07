@@ -17,8 +17,12 @@ public class TransactionService {
 
     public void purchase(TransactionDetails transactionDetails) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
-        if (currentWallet.getAmountEuro() <= transactionDetails.getMoneyAmount()) {
-            walletService.purchaseBtc(transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
+        if (currentWallet.getAmountEuro() >= transactionDetails.getMoneyAmount()) {
+            calculateMoreBtcs(transactionDetails, currentWallet);
+            calculateLessMoney(transactionDetails, currentWallet);
+            walletService.updateBtc(currentWallet);
+            log.info("Purchased {} donkey koins for user '{}' for prize of ",
+                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
         } else {
             log.info("Not enough euros for purchase of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
@@ -26,7 +30,33 @@ public class TransactionService {
     }
 
     public void sell(TransactionDetails transactionDetails) {
+        Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
+        if (currentWallet.getAmountBtc() >= transactionDetails.getMoneyAmount()) {
+            calculateLessBtcs(transactionDetails, currentWallet);
+            calculateMoreMoney(transactionDetails, currentWallet);
+            walletService.updateBtc(currentWallet);
+            log.info("Sold {} donkey koins for user '{}' for prize of ",
+                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
+        } else {
+            log.info("Not enough euros for sale of '{}' donkey koins for user '{}'",
+                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
+        }
+    }
 
+    private void calculateLessMoney(TransactionDetails transactionDetails, Wallet currentWallet) {
+        currentWallet.setAmountEuro(currentWallet.getAmountEuro() - transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
+    }
+
+    private void calculateMoreBtcs(TransactionDetails transactionDetails, Wallet currentWallet) {
+        currentWallet.setAmountBtc(currentWallet.getAmountBtc() + transactionDetails.getMoneyAmount());
+    }
+
+    private void calculateMoreMoney(TransactionDetails transactionDetails, Wallet currentWallet) {
+        currentWallet.setAmountEuro(currentWallet.getAmountEuro() + transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
+    }
+
+    private void calculateLessBtcs(TransactionDetails transactionDetails, Wallet currentWallet) {
+        currentWallet.setAmountBtc(currentWallet.getAmountBtc() - transactionDetails.getMoneyAmount());
     }
 }
 
