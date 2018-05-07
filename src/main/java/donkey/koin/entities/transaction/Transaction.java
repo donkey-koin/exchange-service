@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @Entity
@@ -26,7 +26,11 @@ public class Transaction {
     private TransactionType transactionType;
 
     @Column(name = "TRANSACTION_TIMESTAMP")
-    private Date transactionTimeStamp;
+    private Instant transactionTimeStamp;
 
+    @Column(name = "AMOUNT_BTC")
+    private Double donkeyKoinAmount;
 
+    @Column(name = "AMOUNT_EURO")
+    private Double euroAmount;
 }
