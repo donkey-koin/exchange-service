@@ -27,7 +27,7 @@ public class TransactionService {
     @Autowired
     private final UserRepository userRepository;
 
-    public void purchase(TransactionDetails transactionDetails) {
+    public Transaction purchase(TransactionDetails transactionDetails) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
         double euroAmount = transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue();
 
@@ -46,6 +46,8 @@ public class TransactionService {
 
             log.info("Purchased {} donkey koins for user '{}' for prize of ",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
+
+            return transaction;
         } else {
             log.info("Not enough euros for purchase of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
@@ -53,7 +55,7 @@ public class TransactionService {
         }
     }
 
-    public void sell(TransactionDetails transactionDetails) {
+    public Transaction sell(TransactionDetails transactionDetails) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
         if (currentWallet.getAmountBtc() >= transactionDetails.getMoneyAmount()) {
             calculateLessBtcs(transactionDetails, currentWallet);
@@ -70,6 +72,8 @@ public class TransactionService {
 
             log.info("Sold {} donkey koins for user '{}' for prize of ",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
+
+            return transaction;
         } else {
             log.info("Not enough koins for sale of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
