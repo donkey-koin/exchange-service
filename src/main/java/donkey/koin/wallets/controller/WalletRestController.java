@@ -42,9 +42,16 @@ public class WalletRestController {
         return ResponseEntity.status(HttpStatus.OK).body(stringMap);
     }
 
-//    @RequestMapping(value = "/sell", method = POST, consumes = APPLICATION_JSON_VALUE)
-//    public void sellKoins(@RequestBody @Valid WalletDetails walletDetails) {
-//        transactionService.sell(transactionDetails);
-//    }
+    @RequestMapping(value = "/deposit", method = POST, consumes = APPLICATION_JSON_VALUE)
+    public void deposit(@RequestBody @Valid WalletDetails walletDetails) {
+        walletService.deposit(walletDetails.getUsername(),walletDetails.getMoneyToDeposit());
+    }
+
+    @RequestMapping(value = "/withdrawn", method = POST, consumes = APPLICATION_JSON_VALUE)
+    public void withdrawn(@RequestBody @Valid WalletDetails walletDetails) {
+        walletService.withdrawn(walletDetails.getUsername(),walletDetails.getMoneyToWithdrawn());
+    }
+
+
 
 }

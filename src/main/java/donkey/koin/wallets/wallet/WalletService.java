@@ -1,6 +1,5 @@
 package donkey.koin.wallets.wallet;
 
-import donkey.koin.entities.user.UserRepository;
 import donkey.koin.entities.wallet.Wallet;
 import donkey.koin.entities.wallet.WalletRepository;
 import lombok.AllArgsConstructor;
@@ -12,6 +11,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.PRECONDITION_FAILED;
 
 @Slf4j
 @Service
@@ -21,15 +21,31 @@ public class WalletService {
     @Autowired
     private WalletRepository walletRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
     public Wallet getCurrentWallet(String username) {
-        Optional<Wallet> wallet = walletRepository.findWalletByUsername(username);
-        if (!wallet.isPresent()) {
+        return getUserWallet(username);
+    }
+
+    public void deposit(String username, Double moneyToDeposit) {
+        Wallet wallet = getUserWallet(username);
+        wallet.setAmountEuro(wallet.getAmountEuro() + moneyToDeposit);
+        walletRepository.save(wallet);
+    }
+
+    public void withdrawn(String username, Double moneyToWithdrawn) {
+        Wallet wallet = getUserWallet(username);
+        if (moneyToWithdrawn > wallet.getAmountEuro()) {
+            throw new HttpClientErrorException(PRECONDITION_FAILED, String.format("Not enought money"));
+        }
+        wallet.setAmountEuro(wallet.getAmountEuro() - moneyToWithdrawn);
+        walletRepository.save(wallet);
+    }
+
+    private Wallet getUserWallet(String username) {
+        Optional<Wallet> oWallet = walletRepository.findWalletByUsername(username);
+        if(!oWallet.isPresent()) {
             throw new HttpClientErrorException(NOT_FOUND, String.format("Don't know how but wallet is not present for user %s", username));
         }
-        return wallet.get();
+        return oWallet.get();
     }
 
     public void updateBtc(Wallet wallet) {
