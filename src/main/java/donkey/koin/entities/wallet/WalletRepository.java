@@ -11,4 +11,10 @@ public interface WalletRepository extends CrudRepository<Wallet, Long> {
 
     @Query("SELECT w FROM Wallet w JOIN User u ON u.id = w.userId WHERE u.username = :username")
     Optional<Wallet> findWalletByUsername(@Param("username") String username);
+    Optional<Wallet> findWalletByUserId(User user);
+
+    @Query("UPDATE Wallet SET amountBtc = amountBtc + :amount WHERE (" +
+            "SELECT u.id " +
+            "FROM User u JOIN Wallet w ON (w.userId = u.id)) = :username")
+    void addAmountBtc(@Param("amount") int amount, @Param("username") String username);
 }
