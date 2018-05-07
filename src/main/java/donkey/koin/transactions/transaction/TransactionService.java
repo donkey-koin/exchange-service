@@ -5,7 +5,9 @@ import donkey.koin.wallets.wallet.WalletService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 @Slf4j
 @Service
@@ -26,6 +28,7 @@ public class TransactionService {
         } else {
             log.info("Not enough euros for purchase of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
+            throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough euro");
         }
     }
 
@@ -40,6 +43,7 @@ public class TransactionService {
         } else {
             log.info("Not enough euros for sale of '{}' donkey koins for user '{}'",
                     transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
+            throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough Donkey koins");
         }
     }
 
