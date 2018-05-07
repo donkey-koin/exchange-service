@@ -3,15 +3,23 @@ package donkey.koin.transactions.transaction;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+import java.time.Instant;
+
 @Getter
 public class TransactionDetails {
 
-    private final int amount;
     private final String username;
+    private final Instant transactionTime;
+    private final int moneyAmount;
+    private final int lastKoinValue;
 
-    public TransactionDetails(@JsonProperty("amount") int amount,
-                              @JsonProperty("username") String username) {
-        this.amount = amount;
+    public TransactionDetails(@JsonProperty("moneyAmount") int moneyAmount,
+                              @JsonProperty("username") String username,
+                              @JsonProperty("lastKoinValue") int lastKoinValue,
+                              @JsonProperty("transactionTime") Instant transactionTime) {
+        this.moneyAmount = moneyAmount;
         this.username = username;
+        this.lastKoinValue = lastKoinValue;
+        this.transactionTime = transactionTime;
     }
 }
