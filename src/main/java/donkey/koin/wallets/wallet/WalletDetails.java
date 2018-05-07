@@ -15,10 +15,7 @@ public class WalletDetails {
     @NotBlank
     private final String username;
 
-    @NotBlank
     private final Double moneyToWithdrawn;
-
-    @NotBlank
     private final Double moneyToDeposit;
 
     public WalletDetails(@JsonProperty("username") String username,

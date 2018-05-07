@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static donkey.koin.dictionaries.WebServicesDictionary.WALLET;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -32,8 +34,12 @@ public class WalletRestController {
     private final WalletService walletService;
 
     @RequestMapping(value = "/content", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Wallet> getContent(@RequestBody @Valid WalletDetails walletDetails) {
-        return ResponseEntity.status(HttpStatus.OK).body(walletService.getCurrentWallet(walletDetails.getUsername()));
+    public ResponseEntity<Map<String,String>> getContent(@RequestBody @Valid WalletDetails walletDetails) {
+        Wallet wallet = walletService.getCurrentWallet(walletDetails.getUsername());
+        Map<String,String> stringMap = new HashMap<>();
+        stringMap.put("amountEuro","" + wallet.getAmountEuro());
+        stringMap.put("amountBtc","" + wallet.getAmountBtc());
+        return ResponseEntity.status(HttpStatus.OK).body(stringMap);
     }
 
 //    @RequestMapping(value = "/sell", method = POST, consumes = APPLICATION_JSON_VALUE)
