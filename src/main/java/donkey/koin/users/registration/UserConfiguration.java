@@ -1,6 +1,7 @@
 package donkey.koin.users.registration;
 
 import donkey.koin.entities.user.UserRepository;
+import donkey.koin.entities.wallet.WalletRepository;
 import donkey.koin.users.controller.UserRestController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +17,9 @@ public class UserConfiguration {
     }
 
     @Bean
-    UserRegistrationService userRegistrationService(UserRepository userRepository,
+    UserRegistrationService userRegistrationService(UserRepository userRepository, WalletRepository walletRepository,
                                                     PasswordEncoder passwordEncoder) {
-        return new UserRegistrationService(userRepository, passwordEncoder);
+        return new UserRegistrationService(userRepository,walletRepository,passwordEncoder);
     }
 
     @Bean

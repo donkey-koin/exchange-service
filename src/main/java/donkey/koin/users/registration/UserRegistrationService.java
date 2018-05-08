@@ -2,6 +2,8 @@ package donkey.koin.users.registration;
 
 import donkey.koin.entities.user.User;
 import donkey.koin.entities.user.UserRepository;
+import donkey.koin.entities.wallet.Wallet;
+import donkey.koin.entities.wallet.WalletRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +24,10 @@ public class UserRegistrationService {
 
     @Resource
     private final UserRepository userRepository;
+
+    @Resource
+    private final WalletRepository walletRepository;
+
     @Resource
     private final PasswordEncoder passwordEncoder;
 
@@ -39,7 +45,15 @@ public class UserRegistrationService {
                 .build();
 
         log.info("Saving user '{}' to database", user.getUsername());
-        userRepository.save(user);
+        User createdUser = userRepository.save(user);
+
+        Wallet wallet = Wallet.builder()
+                .userId(createdUser.getId())
+                .amountBtc(0d)
+                .amountEuro(0d)
+                .build();
+
+        walletRepository.save(wallet);
     }
 
     private Consumer<User> checkUsernameOrEmailDuplicate(UserRegistrationDetails userRegistrationDetails) {

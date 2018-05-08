@@ -19,7 +19,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Slf4j
 @AllArgsConstructor
-@RestController(USERS)
+@RestController
+@RequestMapping(USERS)
 public class UserRestController {
 
     @Resource
