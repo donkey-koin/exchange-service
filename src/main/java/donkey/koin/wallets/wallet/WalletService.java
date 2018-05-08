@@ -34,7 +34,7 @@ public class WalletService {
     public void withdrawn(String username, Double moneyToWithdrawn) {
         Wallet wallet = getUserWallet(username);
         if (moneyToWithdrawn > wallet.getAmountEuro()) {
-            throw new HttpClientErrorException(PRECONDITION_FAILED, String.format("Not enought money"));
+            throw new HttpClientErrorException(PRECONDITION_FAILED, "Not enough money");
         }
         wallet.setAmountEuro(wallet.getAmountEuro() - moneyToWithdrawn);
         walletRepository.save(wallet);
