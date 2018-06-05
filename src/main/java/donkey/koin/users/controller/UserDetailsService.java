@@ -1,5 +1,6 @@
 package donkey.koin.users.controller;
 
+import donkey.koin.authapi.security.JwtServiceHMAC;
 import donkey.koin.entities.transaction.TransactionRepository;
 import donkey.koin.entities.user.UserRepository;
 import lombok.AllArgsConstructor;
@@ -17,9 +18,11 @@ public class UserDetailsService {
     private final UserRepository userRepository;
     @Resource
     private final TransactionRepository transactionRepository;
+    @Resource
+    private final JwtServiceHMAC jwtServiceHMAC;
 
-    public UserDetails getUserDetailsForUsername(String username) {
-        return userRepository.findUserByUsername(username)
+    public UserDetails getUserDetailsForJwt(String jwt) {
+        return userRepository.findUserByUsername(jwtServiceHMAC.parseJwt(jwt))
                 .map(user -> new UserDetails(
                         user.getUsername(),
                         user.getEmail(),

@@ -32,7 +32,7 @@ public class UserRestController {
     }
 
     @GetMapping
-    public UserDetails getUser(String username) {
-        return userDetailsService.getUserDetailsForUsername(username);
+    public UserDetails getUser(@RequestHeader("Authorization") String jwtToken) {
+        return userDetailsService.getUserDetailsForJwt(jwtToken);
     }
 }
