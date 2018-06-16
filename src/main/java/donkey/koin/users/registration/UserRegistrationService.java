@@ -47,8 +47,8 @@ public class UserRegistrationService {
                 .username(userRegistrationDetails.getUsername())
                 .password(hashedPassword)
                 .email(userRegistrationDetails.getEmail())
-                .publicKey(Objects.requireNonNull(keyPair).getPublic())
-                .privateKey(keyPair.getPrivate())
+                .publicKey(Objects.requireNonNull(keyPair).getPublic().getEncoded())
+                .privateKey(keyPair.getPrivate().getEncoded())
                 .build();
 
         log.info("Saving user '{}' to database", user.getUsername());
