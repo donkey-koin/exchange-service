@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import javax.annotation.Resource;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -38,10 +40,15 @@ public class UserRegistrationService {
 
         String hashedPassword = passwordEncoder.encode(userRegistrationDetails.getPassword());
 
+        KeyPair keyPair = generateKeyPair();
+
+        System.out.println(Objects.requireNonNull(keyPair).getPrivate().getEncoded().length);
         User user = User.builder()
                 .username(userRegistrationDetails.getUsername())
                 .password(hashedPassword)
                 .email(userRegistrationDetails.getEmail())
+                .publicKey(Objects.requireNonNull(keyPair).getPublic())
+                .privateKey(keyPair.getPrivate())
                 .build();
 
         log.info("Saving user '{}' to database", user.getUsername());
@@ -65,4 +72,16 @@ public class UserRegistrationService {
             }
         };
     }
+
+    private KeyPair generateKeyPair() {
+        try {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(512);
+            return kpg.generateKeyPair();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
