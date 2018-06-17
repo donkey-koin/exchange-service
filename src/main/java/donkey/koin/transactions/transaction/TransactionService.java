@@ -41,25 +41,25 @@ public class TransactionService {
 
     @Transactional
     public Transaction purchase(TransactionDetails transactionDetails) {
-        return makeTransaction(transactionDetails,TransactionType.PURCHASE);
+        return makeTransaction(transactionDetails, TransactionType.PURCHASE);
     }
 
     @Transactional
     public Transaction sell(TransactionDetails transactionDetails) {
-        return makeTransaction(transactionDetails,TransactionType.SALE);
+        return makeTransaction(transactionDetails, TransactionType.SALE);
     }
 
     private Transaction makeTransaction(TransactionDetails transactionDetails, TransactionType transactionType) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
-        double coinsToBuy = transactionDetails.getMoneyAmount();
-        double euroAmount = coinsToBuy * transactionDetails.getLastKoinValue();
+        double coinsToTransact = transactionDetails.getMoneyAmount();
+        double euroAmount = coinsToTransact * transactionDetails.getLastKoinValue();
 
-        if (currentWallet.getAmountEuro() >= euroAmount) {
+        if (checkIfEnoughMoneyInWallet(transactionType,currentWallet,transactionDetails)) {
             List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
-            boolean enoughCoinsInOrders = checkOrdersAvailability(orderList, coinsToBuy);
+            boolean enoughCoinsInOrders = checkOrdersAvailability(orderList, coinsToTransact);
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
             if (!enoughCoinsInOrders) {
-                registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToBuy, user.getPublicKey());
+                registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact, user.getPublicKey());
                 throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on sale");
             }
             return registerNewTransaction(transactionDetails, transactionType, euroAmount, user.getId());
@@ -89,7 +89,7 @@ public class TransactionService {
         transaction.setTransactionTimeStamp(transactionDetails.getTransactionTime());
         transaction.setTransactionType(transactionType);
         transaction.setDonkeyKoinAmount(transactionDetails.getMoneyAmount());
-        transaction.setEuroAmount(euroAmount);
+        transaction.setEuroAmount(transactionType.equals(TransactionType.PURCHASE) ? euroAmount : transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
         transaction.setUserId(userId);
         transactionRepository.save(transaction);
         return transaction;
@@ -101,6 +101,14 @@ public class TransactionService {
         newOrder.setAmount(coinsToBuy);
         newOrder.setTimestamp(LocalDateTime.now());
         newOrder.setOwnerId(userPublicKey);
+    }
+
+    private boolean checkIfEnoughMoneyInWallet(TransactionType transactionType, Wallet wallet, TransactionDetails transactionDetails) {
+        if (transactionType.equals(TransactionType.PURCHASE)) {
+            return wallet.getAmountEuro() >= transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue();
+        } else {
+            return wallet.getAmountBtc() >= transactionDetails.getMoneyAmount();
+        }
     }
 
     private void calculateLessMoney(TransactionDetails transactionDetails, Wallet currentWallet) {
