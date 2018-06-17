@@ -52,49 +52,58 @@ public class TransactionService {
     private Transaction makeTransaction(TransactionDetails transactionDetails, TransactionType transactionType) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
         double coinsToTransact = transactionDetails.getMoneyAmount();
-        double euroAmount = coinsToTransact * transactionDetails.getLastKoinValue();
 
         if (checkIfEnoughMoneyInWallet(transactionType, currentWallet, transactionDetails)) {
-            List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
-            List<Order> consumedOrders = collectAvailableOrders(orderList, coinsToTransact);
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
+            List<Order> consumedOrders = collectAvailableOrders(transactionType, coinsToTransact,user.getPublicKey());
             if (consumedOrders.isEmpty()) {
                 registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact, user.getPublicKey());
                 throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on sale");
             }
             orderRepository.deleteAll(consumedOrders);
-            return registerNewTransaction(transactionDetails, transactionType, euroAmount, user.getId());
+            double consumedValue = consumedOrders.stream().mapToDouble(Order::getAmount).sum();
+            return registerNewTransaction(transactionDetails, transactionType, consumedValue , user.getId());
         } else {
             throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough euro");
         }
     }
 
-    private List<Order> collectAvailableOrders(List<Order> orderList, double coinsToBuy) {
+    private List<Order> collectAvailableOrders(TransactionType transactionType, double coinsToTransact, byte[] publicKey) {
+        List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
         Double avaliableCoinsInOrders = 0d;
         List<Order> consumedOrders = new LinkedList<>();
 
         for (Order order : orderList) {
             consumedOrders.add(order);
             avaliableCoinsInOrders += order.getAmount();
-            if (avaliableCoinsInOrders >= coinsToBuy) {
-                if (avaliableCoinsInOrders > coinsToBuy) {
-                    order.setAmount(avaliableCoinsInOrders - coinsToBuy);
+            if (avaliableCoinsInOrders >= coinsToTransact) {
+                if (avaliableCoinsInOrders > coinsToTransact) {
+                    Order partialAmountOrder = new Order();
+                    partialAmountOrder.setOrderType(order.getOrderType());
+                    partialAmountOrder.setTimestamp(order.getTimestamp());
+                    partialAmountOrder.setId(null);
+                    partialAmountOrder.setOwnerId(order.getOwnerId());
+                    partialAmountOrder.setAmount(order.getAmount() - (avaliableCoinsInOrders - coinsToTransact));
+
+                    order.setAmount(avaliableCoinsInOrders - coinsToTransact);
                     orderRepository.save(order);
                     consumedOrders.remove(consumedOrders.size() - 1);
-                    consumedOrders.add(order);
+                    consumedOrders.add(partialAmountOrder);
                 }
                 return consumedOrders;
             }
         }
-        return Collections.emptyList();
+
+        registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL,coinsToTransact - avaliableCoinsInOrders,publicKey);
+        return consumedOrders;
     }
 
-    private Transaction registerNewTransaction(TransactionDetails transactionDetails, TransactionType transactionType, Double euroAmount, Long userId) {
+    private Transaction registerNewTransaction(TransactionDetails transactionDetails, TransactionType transactionType, Double coins, Long userId) {
         Transaction transaction = new Transaction();
         transaction.setTransactionTimeStamp(transactionDetails.getTransactionTime());
         transaction.setTransactionType(transactionType);
-        transaction.setDonkeyKoinAmount(transactionDetails.getMoneyAmount());
-        transaction.setEuroAmount(transactionType.equals(TransactionType.PURCHASE) ? euroAmount : transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
+        transaction.setDonkeyKoinAmount(coins);
+        transaction.setEuroAmount(coins * transactionDetails.getLastKoinValue());
         transaction.setUserId(userId);
         transactionRepository.save(transaction);
         return transaction;
