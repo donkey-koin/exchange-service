@@ -1,6 +1,7 @@
 package donkey.koin.transactions.controller;
 
 import donkey.koin.krypto.PotentialTransaction;
+import donkey.koin.transactions.transaction.InitTransaction;
 import donkey.koin.transactions.transaction.TransactionDetails;
 import donkey.koin.transactions.transaction.TransactionService;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static donkey.koin.dictionaries.WebServicesDictionary.TRANSACTION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -35,5 +39,11 @@ public class TransactionRestController {
     @RequestMapping(value = "/sell", method = POST, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<PotentialTransaction> sellKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
         return ResponseEntity.ok().body(transactionService.sell(transactionDetails));
+    }
+
+    @RequestMapping(value = "/init", method = POST, consumes = APPLICATION_JSON_VALUE)
+    public ResponseEntity init(@RequestBody @Valid InitTransaction initTransaction) {
+        transactionService.init(initTransaction);
+        return ResponseEntity.ok().build();
     }
 }

@@ -3,6 +3,7 @@ package donkey.koin.wallets.controller;
 import donkey.koin.entities.wallet.Wallet;
 import donkey.koin.wallets.wallet.WalletDetails;
 import donkey.koin.wallets.wallet.WalletService;
+import donkey.koin.wallets.wallet.WalletUpdateDetails;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,5 +47,10 @@ public class WalletRestController {
     @RequestMapping(value = "/withdrawn", method = POST, consumes = APPLICATION_JSON_VALUE)
     public void withdrawn(@RequestBody @Valid WalletDetails walletDetails) {
         walletService.withdrawn(walletDetails.getUsername(), walletDetails.getMoneyToWithdrawn());
+    }
+
+    @RequestMapping(value = "/update", method = POST, consumes = APPLICATION_JSON_VALUE)
+    public void updateContent(@RequestBody @Valid WalletUpdateDetails walletUpdateDetails) {
+//        walletService.updateWallet();
     }
 }

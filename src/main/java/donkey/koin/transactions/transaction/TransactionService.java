@@ -51,6 +51,15 @@ public class TransactionService {
         return preparePotentialTransaction(transactionDetails, orders);
     }
 
+    public void init(InitTransaction initTransaction) {
+        Order order = new Order();
+        order.setAmount(initTransaction.getMoneyAmount());
+        order.setOwnerId(initTransaction.getPublicKey());
+        order.setOrderType(OrderType.SELL);
+        order.setTimestamp(LocalDateTime.now());
+        orderRepository.save(order);
+    }
+
     private PotentialTransaction preparePotentialTransaction(TransactionDetails transactionDetails, List<Order> orders) {
         List<MiniTransaction> miniTransactions = new ArrayList<>(orders.size());
         User recipient = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
