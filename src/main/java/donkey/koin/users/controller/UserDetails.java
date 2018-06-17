@@ -12,5 +12,6 @@ public class UserDetails {
 
     private final String username;
     private final String email;
+    private final byte[] publicKey;
     private final List<Transaction> transactions;
 }

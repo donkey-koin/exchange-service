@@ -26,6 +26,7 @@ public class UserDetailsService {
                 .map(user -> new UserDetails(
                         user.getUsername(),
                         user.getEmail(),
+                        user.getPublicKey(),
                         transactionRepository.findAllByUserId(user.getId())))
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "User not found"));
     }
