@@ -1,7 +1,12 @@
 package donkey.koin.integration
 
 import donkey.koin.app.ExchangeApplication
+import donkey.koin.entities.order.Order
+import donkey.koin.entities.order.OrderRepository
+import donkey.koin.entities.order.OrderType
 import donkey.koin.entities.transaction.TransactionRepository
+import donkey.koin.entities.transaction.TransactionType
+import donkey.koin.entities.user.UserRepository
 import donkey.koin.entities.wallet.WalletRepository
 import donkey.koin.users.registration.UserRegistrationDetails
 import donkey.koin.users.registration.UserRegistrationService
@@ -38,22 +43,30 @@ class TransactionIntegrationTest {
 
     @Autowired
     TransactionRepository transactionRepository
+
     @Autowired
     WalletRepository walletRepository
 
     @Autowired
+    UserRepository userRepository
+
+    @Autowired
     UserRegistrationService userRegistrationService
+
+    @Autowired
+    OrderRepository orderRepository
+
+    def clearDatabase() {
+        orderRepository.deleteAll()
+        userRepository.deleteAll()
+        walletRepository.deleteAll()
+        transactionRepository.deleteAll()
+    }
 
     @Before
     void before() {
-        def username = 'szymo080'
-        def userDetails = new UserRegistrationDetails(
-                username,
-                'szymon123',
-                'szymo@mail.com'
-        )
-
-        userRegistrationService.registerUser(userDetails)
+        clearDatabase()
+        registerUser('szymo080','szymon123','szymo@mail.com')
     }
 
     @Test
@@ -76,17 +89,54 @@ class TransactionIntegrationTest {
                 .content(transactionDetails))
                 .andExpect(status().isInsufficientStorage())
 
-//        then:
-//        def actualWallet = walletRepository.findWalletByUsername(username).get()
-//        assert actualWallet.amountEuro == 610
-//        assert actualWallet.amountBtc == 1d
-//
-//        def transaction = ++transactionRepository.findAll().iterator()
-//        assert transaction.euroAmount == 1390d
+        then:
+        def order = ++orderRepository.findAll().iterator()
+        assert order.amount == 1
+        assert order.orderType == OrderType.BUY
+        assert order.ownerId == userRepository.findUserByUsername(username).get().publicKey
     }
 
     @Test
-    void 'should test purchase fail transaction'() {
+    void 'purchase happy path'() {
+        given:
+        def username = 'szymo080'
+        def wallet = walletRepository.findWalletByUsername(username).get()
+        wallet.amountEuro = 2000d
+        walletRepository.save(wallet)
+        registerUser('joel','tshibi','joel@mail.com')
+        // TODO: WALLET NOT UPDATINIG
+        createOrder(OrderType.SELL,2d,"joel")
+
+        def transactionDetails = "{" +
+                "\"moneyAmount\":1, " +
+                "\"username\":\"szymo080\", " +
+                "\"lastKoinValue\":1390, " +
+                "\"transactionTime\":\"${Instant.now()}\"" +
+                "}"
+        when:
+        mvc.perform(post(TRANSACTION + "/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(transactionDetails))
+                .andExpect(status().isOk())
+
+        then:
+//        def actualWallet = walletRepository.findWalletByUsername(username).get()
+//        assert actualWallet.amountEuro == 610
+//        assert actualWallet.amountBtc == 1d
+
+        def transaction = ++transactionRepository.findAll().iterator()
+        assert transaction.euroAmount == 1390d
+        assert transaction.transactionType == TransactionType.PURCHASE
+        assert transaction.donkeyKoinAmount == 1
+
+        def order = ++orderRepository.findAll().iterator()
+        assert order.amount == 1
+        assert order.orderType == OrderType.SELL
+        assert order.ownerId == userRepository.findUserByUsername("joel").get().publicKey
+    }
+
+    @Test
+    void 'purchase returns payment required if not enough euro in wallet'() {
         given:
         def username = 'szymo080'
         def wallet = walletRepository.findWalletByUsername(username).get()
@@ -107,7 +157,7 @@ class TransactionIntegrationTest {
     }
 
     @Test
-    void 'should test sell transaction'() {
+    void 'sell returns insufficient storage when not enough coins to buy in orders'() {
         given:
         def username = 'szymo080'
         def wallet = walletRepository.findWalletByUsername(username).get()
@@ -124,19 +174,19 @@ class TransactionIntegrationTest {
         mvc.perform(post(TRANSACTION + "/sell")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(transactionDetails))
-                .andExpect(status().isOk())
+                .andExpect(status().isInsufficientStorage())
 
-        then:
-        def actualWallet = walletRepository.findWalletByUsername(username).get()
-        assert actualWallet.amountEuro == 4170d
-        assert actualWallet.amountBtc == 2d
-
-        def transaction = ++transactionRepository.findAll().iterator()
-        assert transaction.euroAmount == 4170d
+//        then:
+//        def actualWallet = walletRepository.findWalletByUsername(username).get()
+//        assert actualWallet.amountEuro == 4170d
+//        assert actualWallet.amountBtc == 2d
+//
+//        def transaction = ++transactionRepository.findAll().iterator()
+//        assert transaction.euroAmount == 4170d
     }
 
     @Test
-    void 'should test sell fail transaction'() {
+    void 'sell returns payment required if not enough coins in wallet'() {
         given:
         def username = 'szymo080'
         def wallet = walletRepository.findWalletByUsername(username).get()
@@ -154,5 +204,18 @@ class TransactionIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(transactionDetails))
                 .andExpect(status().isPaymentRequired())
+    }
+
+    def createOrder(orderType, amount, username) {
+        def order = new Order()
+        order.amount = amount
+        order.orderType = orderType
+        order.ownerId = userRepository.findUserByUsername(username).get().publicKey
+        orderRepository.save(order)
+    }
+
+    def registerUser(String username, String password, String email) {
+        def userDetails = new UserRegistrationDetails(username, password, email)
+        userRegistrationService.registerUser(userDetails)
     }
 }
