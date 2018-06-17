@@ -20,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
@@ -39,12 +40,10 @@ public class TransactionService {
     @Autowired
     private final UserRepository userRepository;
 
-    @Transactional
     public Transaction purchase(TransactionDetails transactionDetails) {
         return makeTransaction(transactionDetails, TransactionType.PURCHASE);
     }
 
-    @Transactional
     public Transaction sell(TransactionDetails transactionDetails) {
         return makeTransaction(transactionDetails, TransactionType.SALE);
     }
@@ -71,16 +70,23 @@ public class TransactionService {
 
     private boolean checkOrdersAvailability(List<Order> orderList, double coinsToBuy) {
         Double avaliableCoinsInOrders = 0d;
+        List<Order> consumedOrders = new LinkedList<>();
+
         for (Order order : orderList) {
+            consumedOrders.add(order);
+            avaliableCoinsInOrders += order.getAmount();
             if (avaliableCoinsInOrders >= coinsToBuy) {
                 if (avaliableCoinsInOrders > coinsToBuy) {
                     order.setAmount(avaliableCoinsInOrders - coinsToBuy);
                     orderRepository.save(order);
+                    consumedOrders.remove(consumedOrders.size()-1);
                 }
                 return true;
             }
-            avaliableCoinsInOrders += order.getAmount();
         }
+
+
+        // TODO delete orders
         return false;
     }
 
@@ -97,10 +103,11 @@ public class TransactionService {
 
     private void registerNewOrder(OrderType orderType, double coinsToBuy, byte[] userPublicKey) {
         Order newOrder = new Order();
-        newOrder.setOrderType(OrderType.BUY);
+        newOrder.setOrderType(orderType);
         newOrder.setAmount(coinsToBuy);
         newOrder.setTimestamp(LocalDateTime.now());
         newOrder.setOwnerId(userPublicKey);
+        orderRepository.save(newOrder);
     }
 
     private boolean checkIfEnoughMoneyInWallet(TransactionType transactionType, Wallet wallet, TransactionDetails transactionDetails) {
