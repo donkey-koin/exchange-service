@@ -53,7 +53,7 @@ public class TransactionService {
         double coinsToTransact = transactionDetails.getMoneyAmount();
         double euroAmount = coinsToTransact * transactionDetails.getLastKoinValue();
 
-        if (checkIfEnoughMoneyInWallet(transactionType,currentWallet,transactionDetails)) {
+        if (checkIfEnoughMoneyInWallet(transactionType, currentWallet, transactionDetails)) {
             List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
             boolean enoughCoinsInOrders = checkOrdersAvailability(orderList, coinsToTransact);
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
@@ -79,14 +79,12 @@ public class TransactionService {
                 if (avaliableCoinsInOrders > coinsToBuy) {
                     order.setAmount(avaliableCoinsInOrders - coinsToBuy);
                     orderRepository.save(order);
-                    consumedOrders.remove(consumedOrders.size()-1);
+                    consumedOrders.remove(consumedOrders.size() - 1);
                 }
+                orderRepository.deleteAll(consumedOrders);
                 return true;
             }
         }
-
-
-        // TODO delete orders
         return false;
     }
 
