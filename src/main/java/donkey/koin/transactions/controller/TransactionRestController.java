@@ -1,6 +1,6 @@
 package donkey.koin.transactions.controller;
 
-import donkey.koin.entities.transaction.Transaction;
+import donkey.koin.krypto.PotentialTransaction;
 import donkey.koin.transactions.transaction.TransactionDetails;
 import donkey.koin.transactions.transaction.TransactionService;
 import lombok.AllArgsConstructor;
@@ -27,12 +27,13 @@ public class TransactionRestController {
     private final TransactionService transactionService;
 
     @RequestMapping(value = "/purchase", method = POST, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Transaction> purchaseKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
-        return ResponseEntity.ok().body(transactionService.purchase(transactionDetails));
+    public ResponseEntity<PotentialTransaction> purchaseKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
+        PotentialTransaction purchase = transactionService.purchase(transactionDetails);
+        return ResponseEntity.ok().body(purchase);
     }
 
     @RequestMapping(value = "/sell", method = POST, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Transaction> sellKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
+    public ResponseEntity<PotentialTransaction> sellKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
         return ResponseEntity.ok().body(transactionService.sell(transactionDetails));
     }
 }
