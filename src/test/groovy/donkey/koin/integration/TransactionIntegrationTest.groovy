@@ -105,7 +105,7 @@ class TransactionIntegrationTest {
         walletRepository.save(wallet)
         registerUser('joel','tshibi','joel@mail.com')
         // TODO: WALLET NOT UPDATINIG
-        createOrder(OrderType.SELL,2d,"joel")
+        createOrder(OrderType.SELL,3d,"joel")
 
         def transactionDetails = "{" +
                 "\"moneyAmount\":1, " +
@@ -120,19 +120,120 @@ class TransactionIntegrationTest {
                 .andExpect(status().isOk())
 
         then:
-//        def actualWallet = walletRepository.findWalletByUsername(username).get()
-//        assert actualWallet.amountEuro == 610
-//        assert actualWallet.amountBtc == 1d
-
         def transaction = ++transactionRepository.findAll().iterator()
         assert transaction.euroAmount == 1390d
         assert transaction.transactionType == TransactionType.PURCHASE
         assert transaction.donkeyKoinAmount == 1
 
         def order = ++orderRepository.findAll().iterator()
-        assert order.amount == 1
+        assert order.amount == 2
         assert order.orderType == OrderType.SELL
         assert order.ownerId == userRepository.findUserByUsername("joel").get().publicKey
+    }
+
+    @Test
+    void 'pucharse only partial'() {
+        given:
+        def username = 'szymo080'
+        def wallet = walletRepository.findWalletByUsername(username).get()
+        wallet.amountEuro = 4000d
+        walletRepository.save(wallet)
+        registerUser('joel','tshibi','joel@mail.com')
+        // TODO: WALLET NOT UPDATINIG
+        createOrder(OrderType.SELL,1.5d,"joel")
+
+        def transactionDetails = "{" +
+                "\"moneyAmount\":2, " +
+                "\"username\":\"szymo080\", " +
+                "\"lastKoinValue\":1390, " +
+                "\"transactionTime\":\"${Instant.now()}\"" +
+                "}"
+        when:
+        mvc.perform(post(TRANSACTION + "/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(transactionDetails))
+                .andExpect(status().isOk())
+
+        then:
+        def transaction = ++transactionRepository.findAll().iterator()
+        assert transaction.euroAmount == 1.5d * 1390d
+        assert transaction.transactionType == TransactionType.PURCHASE
+        assert transaction.donkeyKoinAmount == 1.5d
+
+        def order = ++orderRepository.findAll().iterator()
+        assert order.amount == 0.5d
+        assert order.orderType == OrderType.BUY
+        assert order.ownerId == userRepository.findUserByUsername("szymo080").get().publicKey
+    }
+
+    @Test
+    void 'sell happy path'() {
+        given:
+        def username = 'szymo080'
+        def wallet = walletRepository.findWalletByUsername(username).get()
+        wallet.amountBtc = 3d
+        walletRepository.save(wallet)
+        registerUser('joel','tshibi','joel@mail.com')
+        // TODO: WALLET NOT UPDATINIG
+        createOrder(OrderType.BUY,2.5d,"joel")
+
+        def transactionDetails = "{" +
+                "\"moneyAmount\":2, " +
+                "\"username\":\"szymo080\", " +
+                "\"lastKoinValue\":1390, " +
+                "\"transactionTime\":\"${Instant.now()}\"" +
+                "}"
+        when:
+        mvc.perform(post(TRANSACTION + "/sell")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(transactionDetails))
+                .andExpect(status().isOk())
+
+        then:
+        def transaction = ++transactionRepository.findAll().iterator()
+        assert transaction.euroAmount == 2 * 1390d
+        assert transaction.transactionType == TransactionType.SALE
+        assert transaction.donkeyKoinAmount == 2
+
+        def order = ++orderRepository.findAll().iterator()
+        assert order.amount == 0.5d
+        assert order.orderType == OrderType.BUY
+        assert order.ownerId == userRepository.findUserByUsername("joel").get().publicKey
+    }
+
+    @Test
+    void 'sell only partial'() {
+        given:
+        def username = 'szymo080'
+        def wallet = walletRepository.findWalletByUsername(username).get()
+        wallet.amountBtc = 3d
+        walletRepository.save(wallet)
+        registerUser('joel','tshibi','joel@mail.com')
+        // TODO: WALLET NOT UPDATINIG
+        createOrder(OrderType.BUY,1.5d,"joel")
+
+        def transactionDetails = "{" +
+                "\"moneyAmount\":2, " +
+                "\"username\":\"szymo080\", " +
+                "\"lastKoinValue\":1390, " +
+                "\"transactionTime\":\"${Instant.now()}\"" +
+                "}"
+        when:
+        mvc.perform(post(TRANSACTION + "/sell")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(transactionDetails))
+                .andExpect(status().isOk())
+
+        then:
+        def transaction = ++transactionRepository.findAll().iterator()
+        assert transaction.euroAmount == 1.5d * 1390d
+        assert transaction.transactionType == TransactionType.SALE
+        assert transaction.donkeyKoinAmount == 1.5d
+
+        def order = ++orderRepository.findAll().iterator()
+        assert order.amount == 0.5d
+        assert order.orderType == OrderType.SELL
+        assert order.ownerId == userRepository.findUserByUsername("szymo080").get().publicKey
     }
 
     @Test
@@ -176,13 +277,6 @@ class TransactionIntegrationTest {
                 .content(transactionDetails))
                 .andExpect(status().isInsufficientStorage())
 
-//        then:
-//        def actualWallet = walletRepository.findWalletByUsername(username).get()
-//        assert actualWallet.amountEuro == 4170d
-//        assert actualWallet.amountBtc == 2d
-//
-//        def transaction = ++transactionRepository.findAll().iterator()
-//        assert transaction.euroAmount == 4170d
     }
 
     @Test
