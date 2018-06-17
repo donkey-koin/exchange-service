@@ -3,9 +3,10 @@ package donkey.koin.krypto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 
-public class MiniTransaction {
+public class MiniTransaction implements Serializable {
     private byte[] publicKeyInBytes;
     private double amount;
 

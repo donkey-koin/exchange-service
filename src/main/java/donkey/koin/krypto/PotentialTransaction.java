@@ -3,12 +3,13 @@ package donkey.koin.krypto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PotentialTransaction {
+public class PotentialTransaction implements Serializable {
     private List<MiniTransaction> usersToTakeMoneyFromToAmount;
     private byte[] recipient;
     private double amount;
