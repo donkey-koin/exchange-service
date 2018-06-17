@@ -20,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,20 +56,20 @@ public class TransactionService {
 
         if (checkIfEnoughMoneyInWallet(transactionType, currentWallet, transactionDetails)) {
             List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
-            boolean enoughCoinsInOrders = checkOrdersAvailability(orderList, coinsToTransact);
+            List<Order> consumedOrders = collectAvailableOrders(orderList, coinsToTransact);
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
-            if (!enoughCoinsInOrders) {
+            if (consumedOrders.isEmpty()) {
                 registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact, user.getPublicKey());
                 throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on sale");
             }
+            orderRepository.deleteAll(consumedOrders);
             return registerNewTransaction(transactionDetails, transactionType, euroAmount, user.getId());
-
         } else {
             throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough euro");
         }
     }
 
-    private boolean checkOrdersAvailability(List<Order> orderList, double coinsToBuy) {
+    private List<Order> collectAvailableOrders(List<Order> orderList, double coinsToBuy) {
         Double avaliableCoinsInOrders = 0d;
         List<Order> consumedOrders = new LinkedList<>();
 
@@ -80,12 +81,12 @@ public class TransactionService {
                     order.setAmount(avaliableCoinsInOrders - coinsToBuy);
                     orderRepository.save(order);
                     consumedOrders.remove(consumedOrders.size() - 1);
+                    consumedOrders.add(order);
                 }
-                orderRepository.deleteAll(consumedOrders);
-                return true;
+                return consumedOrders;
             }
         }
-        return false;
+        return Collections.emptyList();
     }
 
     private Transaction registerNewTransaction(TransactionDetails transactionDetails, TransactionType transactionType, Double euroAmount, Long userId) {
