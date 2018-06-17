@@ -9,18 +9,18 @@ import donkey.koin.entities.transaction.TransactionType;
 import donkey.koin.entities.user.User;
 import donkey.koin.entities.user.UserRepository;
 import donkey.koin.entities.wallet.Wallet;
+import donkey.koin.krypto.MiniTransaction;
+import donkey.koin.krypto.PotentialTransaction;
 import donkey.koin.wallets.wallet.WalletService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,28 +41,38 @@ public class TransactionService {
     @Autowired
     private final UserRepository userRepository;
 
-    public Transaction purchase(TransactionDetails transactionDetails) {
-        return makeTransaction(transactionDetails, TransactionType.PURCHASE);
+    public PotentialTransaction purchase(TransactionDetails transactionDetails) {
+        List<Order> orders = makeTransaction(transactionDetails, TransactionType.PURCHASE);
+        return preparePotentialTransaction(transactionDetails, orders);
     }
 
-    public Transaction sell(TransactionDetails transactionDetails) {
-        return makeTransaction(transactionDetails, TransactionType.SALE);
+    public PotentialTransaction sell(TransactionDetails transactionDetails) {
+        List<Order> orders = makeTransaction(transactionDetails, TransactionType.SALE);
+        return preparePotentialTransaction(transactionDetails, orders);
     }
 
-    private Transaction makeTransaction(TransactionDetails transactionDetails, TransactionType transactionType) {
+    private PotentialTransaction preparePotentialTransaction(TransactionDetails transactionDetails, List<Order> orders) {
+        List<MiniTransaction> miniTransactions = new ArrayList<>(orders.size());
+        User recipient = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
+        orders.forEach(order -> miniTransactions.add(new MiniTransaction(order.getOwnerId(), order.getAmount())));
+        return new PotentialTransaction(miniTransactions, recipient.getPublicKey(), transactionDetails.getMoneyAmount());
+    }
+
+    private List<Order> makeTransaction(TransactionDetails transactionDetails, TransactionType transactionType) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
         double coinsToTransact = transactionDetails.getMoneyAmount();
 
         if (checkIfEnoughMoneyInWallet(transactionType, currentWallet, transactionDetails)) {
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
-            List<Order> consumedOrders = collectAvailableOrders(transactionType, coinsToTransact,user.getPublicKey());
+            List<Order> consumedOrders = collectAvailableOrders(transactionType, coinsToTransact, user.getPublicKey());
             if (consumedOrders.isEmpty()) {
                 registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact, user.getPublicKey());
                 throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on sale");
             }
             orderRepository.deleteAll(consumedOrders);
             double consumedValue = consumedOrders.stream().mapToDouble(Order::getAmount).sum();
-            return registerNewTransaction(transactionDetails, transactionType, consumedValue , user.getId());
+            registerNewTransaction(transactionDetails, transactionType, consumedValue, user.getId());
+            return consumedOrders;
         } else {
             throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough euro");
         }
@@ -94,7 +104,7 @@ public class TransactionService {
             }
         }
 
-        registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL,coinsToTransact - avaliableCoinsInOrders,publicKey);
+        registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact - avaliableCoinsInOrders, publicKey);
         return consumedOrders;
     }
 
