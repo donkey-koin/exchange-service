@@ -1,8 +1,12 @@
 package donkey.koin.transactions.transaction;
 
+import donkey.koin.entities.order.Order;
+import donkey.koin.entities.order.OrderRepository;
+import donkey.koin.entities.order.OrderType;
 import donkey.koin.entities.transaction.Transaction;
 import donkey.koin.entities.transaction.TransactionRepository;
 import donkey.koin.entities.transaction.TransactionType;
+import donkey.koin.entities.user.User;
 import donkey.koin.entities.user.UserRepository;
 import donkey.koin.entities.wallet.Wallet;
 import donkey.koin.wallets.wallet.WalletService;
@@ -10,8 +14,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+
+import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -25,60 +34,73 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
 
     @Autowired
+    private final OrderRepository orderRepository;
+
+    @Autowired
     private final UserRepository userRepository;
 
+    @Transactional
     public Transaction purchase(TransactionDetails transactionDetails) {
+        return makeTransaction(transactionDetails,TransactionType.PURCHASE);
+    }
+
+    @Transactional
+    public Transaction sell(TransactionDetails transactionDetails) {
+        return makeTransaction(transactionDetails,TransactionType.SALE);
+    }
+
+    private Transaction makeTransaction(TransactionDetails transactionDetails, TransactionType transactionType) {
         Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
-        double euroAmount = transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue();
+        double coinsToBuy = transactionDetails.getMoneyAmount();
+        double euroAmount = coinsToBuy * transactionDetails.getLastKoinValue();
 
         if (currentWallet.getAmountEuro() >= euroAmount) {
-            calculateMoreBtcs(transactionDetails, currentWallet);
-            calculateLessMoney(transactionDetails, currentWallet);
-            walletService.updateBtc(currentWallet);
+            List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
+            boolean enoughCoinsInOrders = checkOrdersAvailability(orderList, coinsToBuy);
+            User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
+            if (!enoughCoinsInOrders) {
+                registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToBuy, user.getPublicKey());
+                throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on sale");
+            }
+            return registerNewTransaction(transactionDetails, transactionType, euroAmount, user.getId());
 
-            Transaction transaction = new Transaction();
-            transaction.setTransactionTimeStamp(transactionDetails.getTransactionTime());
-            transaction.setTransactionType(TransactionType.PURCHASE);
-            transaction.setDonkeyKoinAmount(transactionDetails.getMoneyAmount());
-            transaction.setEuroAmount(euroAmount);
-            transaction.setUserId(userRepository.findUserByUsername(transactionDetails.getUsername()).get().getId());
-            transactionRepository.save(transaction);
-
-            log.info("Purchased {} donkey koins for user '{}' for prize of ",
-                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
-
-            return transaction;
         } else {
-            log.info("Not enough euros for purchase of '{}' donkey koins for user '{}'",
-                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
             throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough euro");
         }
     }
 
-    public Transaction sell(TransactionDetails transactionDetails) {
-        Wallet currentWallet = walletService.getCurrentWallet(transactionDetails.getUsername());
-        if (currentWallet.getAmountBtc() >= transactionDetails.getMoneyAmount()) {
-            calculateLessBtcs(transactionDetails, currentWallet);
-            calculateMoreMoney(transactionDetails, currentWallet);
-            walletService.updateBtc(currentWallet);
-
-            Transaction transaction = new Transaction();
-            transaction.setTransactionTimeStamp(transactionDetails.getTransactionTime());
-            transaction.setTransactionType(TransactionType.SALE);
-            transaction.setDonkeyKoinAmount(transactionDetails.getMoneyAmount());
-            transaction.setEuroAmount(transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
-            transaction.setUserId(userRepository.findUserByUsername(transactionDetails.getUsername()).get().getId());
-            transactionRepository.save(transaction);
-
-            log.info("Sold {} donkey koins for user '{}' for prize of ",
-                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername(), transactionDetails.getLastKoinValue());
-
-            return transaction;
-        } else {
-            log.info("Not enough koins for sale of '{}' donkey koins for user '{}'",
-                    transactionDetails.getMoneyAmount(), transactionDetails.getUsername());
-            throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough Donkey koins");
+    private boolean checkOrdersAvailability(List<Order> orderList, double coinsToBuy) {
+        Double avaliableCoinsInOrders = 0d;
+        for (Order order : orderList) {
+            if (avaliableCoinsInOrders >= coinsToBuy) {
+                if (avaliableCoinsInOrders > coinsToBuy) {
+                    order.setAmount(avaliableCoinsInOrders - coinsToBuy);
+                    orderRepository.save(order);
+                }
+                return true;
+            }
+            avaliableCoinsInOrders += order.getAmount();
         }
+        return false;
+    }
+
+    private Transaction registerNewTransaction(TransactionDetails transactionDetails, TransactionType transactionType, Double euroAmount, Long userId) {
+        Transaction transaction = new Transaction();
+        transaction.setTransactionTimeStamp(transactionDetails.getTransactionTime());
+        transaction.setTransactionType(transactionType);
+        transaction.setDonkeyKoinAmount(transactionDetails.getMoneyAmount());
+        transaction.setEuroAmount(euroAmount);
+        transaction.setUserId(userId);
+        transactionRepository.save(transaction);
+        return transaction;
+    }
+
+    private void registerNewOrder(OrderType orderType, double coinsToBuy, byte[] userPublicKey) {
+        Order newOrder = new Order();
+        newOrder.setOrderType(OrderType.BUY);
+        newOrder.setAmount(coinsToBuy);
+        newOrder.setTimestamp(LocalDateTime.now());
+        newOrder.setOwnerId(userPublicKey);
     }
 
     private void calculateLessMoney(TransactionDetails transactionDetails, Wallet currentWallet) {

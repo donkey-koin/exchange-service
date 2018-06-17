@@ -57,7 +57,7 @@ class TransactionIntegrationTest {
     }
 
     @Test
-    void 'should test purchase transaction'() {
+    void 'purchase returns insufficient storage when not enough coins to sell in orders'() {
         given:
         def username = 'szymo080'
         def wallet = walletRepository.findWalletByUsername(username).get()
@@ -74,15 +74,15 @@ class TransactionIntegrationTest {
         mvc.perform(post(TRANSACTION + "/purchase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(transactionDetails))
-                .andExpect(status().isOk())
+                .andExpect(status().isInsufficientStorage())
 
-        then:
-        def actualWallet = walletRepository.findWalletByUsername(username).get()
-        assert actualWallet.amountEuro == 610
-        assert actualWallet.amountBtc == 1d
-
-        def transaction = ++transactionRepository.findAll().iterator()
-        assert transaction.euroAmount == 1390d
+//        then:
+//        def actualWallet = walletRepository.findWalletByUsername(username).get()
+//        assert actualWallet.amountEuro == 610
+//        assert actualWallet.amountBtc == 1d
+//
+//        def transaction = ++transactionRepository.findAll().iterator()
+//        assert transaction.euroAmount == 1390d
     }
 
     @Test
