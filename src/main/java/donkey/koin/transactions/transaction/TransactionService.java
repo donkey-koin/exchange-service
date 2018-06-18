@@ -68,7 +68,7 @@ public class TransactionService {
             List<Order> consumedOrders = collectAvailableOrders(transactionType, coinsToTransact, user.getPublicKey());
             if (consumedOrders.isEmpty()) {
                 registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact, user.getPublicKey());
-                throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on sale");
+                throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on " + (transactionType.equals(TransactionType.PURCHASE) ? "sale" : "buy"));
             }
             orderRepository.deleteAll(consumedOrders);
             double consumedValue = consumedOrders.stream().mapToDouble(Order::getAmount).sum();
@@ -106,7 +106,9 @@ public class TransactionService {
             }
         }
 
-        registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact - avaliableCoinsInOrders, publicKey);
+        if (avaliableCoinsInOrders != 0) {
+            registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact - avaliableCoinsInOrders, publicKey);
+        }
         return consumedOrders;
     }
 

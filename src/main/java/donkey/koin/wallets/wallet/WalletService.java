@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +30,14 @@ public class WalletService {
         return getUserWallet(username);
     }
 
+    @Transactional
     public void deposit(String username, Double moneyToDeposit) {
         Wallet wallet = getUserWallet(username);
         wallet.setAmountEuro(wallet.getAmountEuro() + moneyToDeposit);
         walletRepository.save(wallet);
     }
 
+    @Transactional
     public void withdrawn(String username, Double moneyToWithdrawn) {
         Wallet wallet = getUserWallet(username);
         if (moneyToWithdrawn > wallet.getAmountEuro()) {
