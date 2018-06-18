@@ -72,6 +72,7 @@ public class TransactionService {
             }
             orderRepository.deleteAll(consumedOrders);
             double consumedValue = consumedOrders.stream().mapToDouble(Order::getAmount).sum();
+            transactionDetails.setMoneyAmount(consumedValue);
             registerNewTransaction(transactionDetails, transactionType, consumedValue, user.getId());
             return consumedOrders;
         } else {
