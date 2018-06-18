@@ -27,5 +27,6 @@ public class ExchangeApplication {
     @PostConstruct
     private void registerAdmin() {
         registrationService.registerUser(new UserRegistrationDetails("a", "a", "a@gmail.com"));
+        registrationService.registerUser(new UserRegistrationDetails("1", "1", "c@gmail.com"));
     }
 }

@@ -20,8 +20,10 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -65,7 +67,9 @@ public class TransactionService {
 
         if (checkIfEnoughMoneyInWallet(transactionType, currentWallet, transactionDetails)) {
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
+
             List<Order> consumedOrders = collectAvailableOrders(transactionType, coinsToTransact, user.getPublicKey());
+
             if (consumedOrders.isEmpty()) {
                 registerNewOrder(transactionType.equals(TransactionType.PURCHASE) ? OrderType.BUY : OrderType.SELL, coinsToTransact, user.getPublicKey());
                 throw new HttpClientErrorException(HttpStatus.INSUFFICIENT_STORAGE, "Not enough coins on " + (transactionType.equals(TransactionType.PURCHASE) ? "sale" : "buy"));
@@ -80,8 +84,15 @@ public class TransactionService {
         }
     }
 
+    private boolean filterOutRequesterOrders(byte[] publicKey, Order order) {
+        return !Arrays.equals(order.getOwnerId(), publicKey);
+    }
+
     private List<Order> collectAvailableOrders(TransactionType transactionType, double coinsToTransact, byte[] publicKey) {
-        List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY);
+        List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY).stream()
+                .filter(order -> filterOutRequesterOrders(publicKey, order))
+                .collect(Collectors.toList());
+
         Double avaliableCoinsInOrders = 0d;
         List<Order> consumedOrders = new LinkedList<>();
 
