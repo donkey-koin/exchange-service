@@ -11,7 +11,7 @@ public class InitTransaction {
     public static byte[] adminPublicKey;
 
     public InitTransaction(@JsonProperty("moneyAmount") Double moneyAmount,
-                              @JsonProperty("publicKey") byte[] publicKey) {
+                           @JsonProperty("publicKey") byte[] publicKey) {
         this.moneyAmount = moneyAmount;
         this.publicKey = publicKey;
         adminPublicKey = publicKey;

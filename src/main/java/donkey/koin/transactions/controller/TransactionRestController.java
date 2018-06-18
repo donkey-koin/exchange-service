@@ -1,6 +1,5 @@
 package donkey.koin.transactions.controller;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import donkey.koin.krypto.PotentialTransaction;
 import donkey.koin.transactions.transaction.InitTransaction;
@@ -30,14 +29,13 @@ public class TransactionRestController {
     @RequestMapping(value = "/purchase", method = POST, consumes = APPLICATION_JSON_VALUE)
     public String purchaseKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
         PotentialTransaction purchase = transactionService.purchase(transactionDetails);
-        Gson gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
-        String json = gsonBuilder.toJson(purchase);
-        return json;
+        return new GsonBuilder().setPrettyPrinting().create().toJson(purchase);
     }
 
     @RequestMapping(value = "/sell", method = POST, consumes = APPLICATION_JSON_VALUE)
-    public ResponseEntity<PotentialTransaction> sellKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
-        return ResponseEntity.ok().body(transactionService.sell(transactionDetails));
+    public String sellKoins(@RequestBody @Valid TransactionDetails transactionDetails) {
+        PotentialTransaction sale = transactionService.sell(transactionDetails);
+        return new GsonBuilder().setPrettyPrinting().create().toJson(sale);
     }
 
     @RequestMapping(value = "/init", method = POST, consumes = APPLICATION_JSON_VALUE)
