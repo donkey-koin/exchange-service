@@ -13,13 +13,16 @@ public class PotentialTransaction implements Serializable {
     private List<MiniTransaction> usersToTakeMoneyFromToAmount;
     private byte[] recipient;
     private double amount;
+    private double lastKoinValue;
 
     public PotentialTransaction(@JsonProperty("usersToTakeMoneyFromToAmount") List<MiniTransaction> usersToTakeMoneyFromToAmount,
                                 @JsonProperty("recipient") byte[] recipient,
-                                @JsonProperty("amount") double amount) {
+                                @JsonProperty("amount") double amount,
+                                @JsonProperty("lastKoinValue") double lastKoinValue) {
         this.usersToTakeMoneyFromToAmount = usersToTakeMoneyFromToAmount;
         this.recipient = recipient;
         this.amount = amount;
+        this.lastKoinValue = lastKoinValue;
     }
 
     public double getAmount() {
@@ -53,5 +56,13 @@ public class PotentialTransaction implements Serializable {
 
     public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public double getLastKoinValue() {
+        return lastKoinValue;
+    }
+
+    public void setLastKoinValue(double lastKoinValue) {
+        this.lastKoinValue = lastKoinValue;
     }
 }

@@ -14,7 +14,6 @@ import donkey.koin.krypto.PotentialTransaction;
 import donkey.koin.wallets.wallet.WalletService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -29,16 +28,9 @@ import java.util.List;
 @AllArgsConstructor
 public class TransactionService {
 
-    @Autowired
     private final WalletService walletService;
-
-    @Autowired
     private final TransactionRepository transactionRepository;
-
-    @Autowired
     private final OrderRepository orderRepository;
-
-    @Autowired
     private final UserRepository userRepository;
 
     public PotentialTransaction purchase(TransactionDetails transactionDetails) {
@@ -64,7 +56,7 @@ public class TransactionService {
         List<MiniTransaction> miniTransactions = new ArrayList<>(orders.size());
         User recipient = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
         orders.forEach(order -> miniTransactions.add(new MiniTransaction(order.getOwnerId(), order.getAmount())));
-        return new PotentialTransaction(miniTransactions, recipient.getPublicKey(), transactionDetails.getMoneyAmount());
+        return new PotentialTransaction(miniTransactions, recipient.getPublicKey(), transactionDetails.getMoneyAmount(), transactionDetails.getLastKoinValue());
     }
 
     private List<Order> makeTransaction(TransactionDetails transactionDetails, TransactionType transactionType) {

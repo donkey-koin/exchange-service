@@ -64,12 +64,21 @@ public class WalletService {
 
                             walletRepository.findWalletByUsername(username)
                                     .map(wallet -> {
-                                        wallet.setAmountBtc(wallet.getAmountBtc() + walletUpdateDetails.getDonkeyKoin());
+                                        wallet.setAmountBtc(calculateKoinAmountAfterUpdate(walletUpdateDetails, wallet));
+                                        wallet.setAmountEuro(calculateEuroAmountAfterUpdate(walletUpdateDetails, wallet));
                                         return walletRepository.save(wallet);
                                     })
                                     .orElseThrow(() -> new HttpServerErrorException(EXPECTATION_FAILED, "Fail when trying to update wallet"));
                         }
                 );
+    }
+
+    private double calculateKoinAmountAfterUpdate(WalletUpdateDetails walletUpdateDetails, Wallet wallet) {
+        return wallet.getAmountBtc() + walletUpdateDetails.getDonkeyKoin();
+    }
+
+    private double calculateEuroAmountAfterUpdate(WalletUpdateDetails walletUpdateDetails, Wallet wallet) {
+        return wallet.getAmountEuro() + -walletUpdateDetails.getDonkeyKoin() * walletUpdateDetails.getLastKoinValue();
     }
 
     private boolean isNotInitPublicKey(WalletUpdateDetails walletUpdateDetails) {
