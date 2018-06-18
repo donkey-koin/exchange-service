@@ -6,7 +6,6 @@ import donkey.koin.wallets.wallet.WalletService;
 import donkey.koin.wallets.wallet.WalletUpdateDetails;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static donkey.koin.dictionaries.WebServicesDictionary.WALLET;
@@ -27,7 +27,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @RequestMapping(WALLET)
 public class WalletRestController {
 
-    @Autowired
     private final WalletService walletService;
 
     @RequestMapping(value = "/content", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -50,7 +49,8 @@ public class WalletRestController {
     }
 
     @RequestMapping(value = "/update", method = POST, consumes = APPLICATION_JSON_VALUE)
-    public void updateContent(@RequestBody @Valid WalletUpdateDetails walletUpdateDetails) {
-//        walletService.updateWallet();
+    public ResponseEntity updateContent(@RequestBody List<WalletUpdateDetails> walletsToUpdateWithAmount) {
+        walletService.updateWallets(walletsToUpdateWithAmount);
+        return ResponseEntity.ok().build();
     }
 }
