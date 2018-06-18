@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.Collections;
+import java.util.Map;
 
 import static donkey.koin.dictionaries.WebServicesDictionary.USERS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -34,5 +36,10 @@ public class UserRestController {
     @GetMapping
     public UserDetails getUser(@RequestHeader("Authorization") String jwtToken) {
         return userDetailsService.getUserDetailsForJwt(jwtToken);
+    }
+
+    @GetMapping(path = "/user-public-key")
+    public Map getUserPublicKey(@RequestHeader("Authorization") String jwtToken) {
+        return Collections.singletonMap("publicKey", userDetailsService.getUserDetailsForJwt(jwtToken).getPublicKey());
     }
 }
