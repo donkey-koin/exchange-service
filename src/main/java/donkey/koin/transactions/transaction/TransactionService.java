@@ -150,21 +150,5 @@ public class TransactionService {
             return wallet.getAmountBtc() >= transactionDetails.getMoneyAmount();
         }
     }
-
-    private void calculateLessMoney(TransactionDetails transactionDetails, Wallet currentWallet) {
-        currentWallet.setAmountEuro(currentWallet.getAmountEuro() - transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
-    }
-
-    private void calculateMoreBtcs(TransactionDetails transactionDetails, Wallet currentWallet) {
-        currentWallet.setAmountBtc(currentWallet.getAmountBtc() + transactionDetails.getMoneyAmount());
-    }
-
-    private void calculateMoreMoney(TransactionDetails transactionDetails, Wallet currentWallet) {
-        currentWallet.setAmountEuro(currentWallet.getAmountEuro() + transactionDetails.getMoneyAmount() * transactionDetails.getLastKoinValue());
-    }
-
-    private void calculateLessBtcs(TransactionDetails transactionDetails, Wallet currentWallet) {
-        currentWallet.setAmountBtc(currentWallet.getAmountBtc() - transactionDetails.getMoneyAmount());
-    }
 }
 
