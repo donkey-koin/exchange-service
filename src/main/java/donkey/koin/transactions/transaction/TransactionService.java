@@ -89,7 +89,7 @@ public class TransactionService {
     }
 
     private List<Order> collectAvailableOrders(TransactionType transactionType, double coinsToTransact, byte[] publicKey) {
-        List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampDesc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY).stream()
+        List<Order> orderList = orderRepository.findOrderByOrderTypeOrderByTimestampAsc(transactionType.equals(TransactionType.PURCHASE) ? OrderType.SELL : OrderType.BUY).stream()
                 .filter(order -> filterOutRequesterOrders(publicKey, order))
                 .collect(Collectors.toList());
 
