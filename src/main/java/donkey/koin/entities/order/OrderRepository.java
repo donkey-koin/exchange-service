@@ -8,4 +8,6 @@ public interface OrderRepository extends CrudRepository<Order, Long> {
 
     List<Order> findOrderByOrderTypeOrderByTimestampAsc(OrderType orderType);
 
+    List<Order> findOrderByOwnerId(byte[] orderId);
+
 }

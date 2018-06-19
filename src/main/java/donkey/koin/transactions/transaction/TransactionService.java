@@ -68,6 +68,8 @@ public class TransactionService {
         if (checkIfEnoughMoneyInWallet(transactionType, currentWallet, transactionDetails)) {
             User user = userRepository.findUserByUsername(transactionDetails.getUsername()).get();
 
+            checkIfUserHasEnoughMoneyToPlaceNewOrder(currentWallet, transactionDetails, transactionType, user);
+
             List<Order> consumedOrders = collectAvailableOrders(transactionType, coinsToTransact, user.getPublicKey());
 
             if (consumedOrders.isEmpty()) {
@@ -81,6 +83,33 @@ public class TransactionService {
             return consumedOrders;
         } else {
             throw new HttpClientErrorException(HttpStatus.PAYMENT_REQUIRED, "Not enough euro");
+        }
+    }
+
+    private void checkIfUserHasEnoughMoneyToPlaceNewOrder(Wallet wallet, TransactionDetails transactionDetails, TransactionType transactionType, User user) {
+        if (transactionType == TransactionType.SALE) {
+            double ordersAddedForRequester = orderRepository.findOrderByOwnerId(user.getPublicKey()).stream()
+                    .filter(order -> order.getOrderType() == OrderType.SELL)
+                    .map(Order::getAmount)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+
+            if (ordersAddedForRequester > transactionDetails.getMoneyAmount()) {
+                throw new HttpClientErrorException(HttpStatus.PRECONDITION_FAILED, "Not enough coins to place new order");
+            }
+        } else {
+            double ordersAddedForRequester = orderRepository.findOrderByOwnerId(user.getPublicKey()).stream()
+                    .filter(order -> order.getOrderType() == OrderType.BUY)
+                    .map(Order::getAmount)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+
+            double neededMoneyToMakeBuyRequest = ordersAddedForRequester * transactionDetails.getLastKoinValue();
+            double currentEuroAmount = wallet.getAmountEuro();
+
+            if (neededMoneyToMakeBuyRequest > currentEuroAmount) {
+                throw new HttpClientErrorException(HttpStatus.PRECONDITION_FAILED, "Not enough coins to place new order");
+            }
         }
     }
 
